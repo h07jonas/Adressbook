@@ -20,37 +20,50 @@ namespace AddressBook
 
             Console.Write("Vorname: ");
             string firstName = Console.ReadLine() ?? "";
+
             Console.Write("Nachname: ");
             string lastName = Console.ReadLine() ?? "";
-            Console.Write("Alter: ");
 
-            if (int.TryParse(Console.ReadLine(), out int age))
+            [cite_start]// Prüfung auf Duplikate (Logik-Prüfung im Manager) [cite: 220]
+            if (persons.Any(p => p.FirstName.Equals(firstName, StringComparison.OrdinalIgnoreCase) &&
+                                 p.LastName.Equals(lastName, StringComparison.OrdinalIgnoreCase)))
             {
-                Console.Write("Straße: ");
-                string street = Console.ReadLine() ?? "";
-                Console.Write("Hausnummer: ");
-                string number = Console.ReadLine() ?? "";
-                Console.Write("Postleitzahl: ");
-                string postalCode = Console.ReadLine() ?? "";
+                throw new InvalidOperationException($"Die Person '{firstName} {lastName}' existiert bereits im Adressbuch.");
+            }
 
-                Address address = new Address(street, number, postalCode);
+            Console.Write("Alter: ");
+            string ageInput = Console.ReadLine();
 
-                if (type?.Trim().ToLower() == "l")
-                {
-                    Console.Write("Fach: ");
-                    string subject = Console.ReadLine() ?? "";
-                    persons.Add(new Teacher(firstName, lastName, age, address, subject));
-                    Console.WriteLine("Lehrer hinzugefügt.");
-                }
-                else
-                {
-                    persons.Add(new Person(firstName, lastName, age, address));
-                    Console.WriteLine("Person hinzugefügt.");
-                }
+            // Wir werfen einen Fehler, wenn das Format falsch ist, anstatt "else" zu nutzen
+            if (!int.TryParse(ageInput, out int age))
+            {
+                throw new FormatException("Das Alter muss eine ganze Zahl sein.");
+            }
+
+            Console.Write("Straße: ");
+            string street = Console.ReadLine() ?? "";
+            Console.Write("Hausnummer: ");
+            string number = Console.ReadLine() ?? "";
+            Console.Write("Postleitzahl: ");
+            string postalCode = Console.ReadLine() ?? "";
+
+            Address address = new Address(street, number, postalCode);
+
+            // Hier wird der Konstruktor aufgerufen -> Validierung von Person.cs greift
+            if (type?.Trim().ToLower() == "l")
+            {
+                Console.Write("Fach: ");
+                string subject = Console.ReadLine() ?? "";
+                if (string.IsNullOrWhiteSpace(subject))
+                    throw new ArgumentException("Das Fach darf nicht leer sein.");
+
+                persons.Add(new Teacher(firstName, lastName, age, address, subject));
+                Console.WriteLine("Lehrer erfolgreich hinzugefügt.");
             }
             else
             {
-                Console.WriteLine("Ungültiges Alter.");
+                persons.Add(new Person(firstName, lastName, age, address));
+                Console.WriteLine("Person erfolgreich hinzugefügt.");
             }
         }
 
